@@ -1,0 +1,27 @@
+class Goal < ApplicationRecord
+  has_many :progress_entries, dependent: :destroy
+
+  validates :title, presence: true
+  validates :goal_type, inclusion: { in: %w[habit milestone project] }, allow_nil: true
+
+  scope :active, -> { where(archived_at: nil) }
+  scope :archived, -> { where.not(archived_at: nil) }
+  scope :completed, -> { where.not(completed_at: nil) }
+  scope :incomplete, -> { where(completed_at: nil) }
+
+  def complete!
+    update!(completed_at: Time.current)
+  end
+
+  def archive!
+    update!(archived_at: Time.current)
+  end
+
+  def completed?
+    completed_at.present?
+  end
+
+  def archived?
+    archived_at.present?
+  end
+end
