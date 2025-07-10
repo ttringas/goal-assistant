@@ -124,6 +124,7 @@ An AI-powered goal tracking application that helps users set goals, track daily 
    - Auth context/hooks
    - Update API client with auth tokens
 8. Add user profile management
+9. User's can add their own Claude and OpenAI API keys which are used for all AI functions (instead of the global app API keys) when added 
 
 **Key Learning Points**: Authentication patterns, data migration, API security
 

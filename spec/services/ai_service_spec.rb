@@ -48,8 +48,11 @@ RSpec.describe AiService do
     end
 
     context 'with valid response' do
+      let(:messages_double) { double('messages') }
+      
       before do
-        allow(mock_client).to receive(:messages).and_return({
+        allow(mock_client).to receive(:messages).and_return(messages_double)
+        allow(messages_double).to receive(:create).and_return({
           "content" => [{ "text" => "habit" }]
         })
       end
@@ -61,8 +64,11 @@ RSpec.describe AiService do
     end
 
     context 'with milestone response' do
+      let(:messages_double) { double('messages') }
+      
       before do
-        allow(mock_client).to receive(:messages).and_return({
+        allow(mock_client).to receive(:messages).and_return(messages_double)
+        allow(messages_double).to receive(:create).and_return({
           "content" => [{ "text" => "milestone" }]
         })
       end
@@ -74,8 +80,11 @@ RSpec.describe AiService do
     end
 
     context 'with project response' do
+      let(:messages_double) { double('messages') }
+      
       before do
-        allow(mock_client).to receive(:messages).and_return({
+        allow(mock_client).to receive(:messages).and_return(messages_double)
+        allow(messages_double).to receive(:create).and_return({
           "content" => [{ "text" => "project" }]
         })
       end
@@ -87,8 +96,11 @@ RSpec.describe AiService do
     end
 
     context 'with unparseable response' do
+      let(:messages_double) { double('messages') }
+      
       before do
-        allow(mock_client).to receive(:messages).and_return({
+        allow(mock_client).to receive(:messages).and_return(messages_double)
+        allow(messages_double).to receive(:create).and_return({
           "content" => [{ "text" => "I'm not sure about this goal type" }]
         })
       end
@@ -110,10 +122,12 @@ RSpec.describe AiService do
     end
 
     context 'with valid response' do
+      let(:messages_double) { double('messages') }
       let(:suggestions) { "1. Add specific time commitment\n2. Define measurable outcomes\n3. Set a clear deadline" }
       
       before do
-        allow(mock_client).to receive(:messages).and_return({
+        allow(mock_client).to receive(:messages).and_return(messages_double)
+        allow(messages_double).to receive(:create).and_return({
           "content" => [{ "text" => suggestions }]
         })
       end
@@ -137,8 +151,12 @@ RSpec.describe AiService do
     end
 
     context 'when Anthropic returns 529 error' do
+      let(:messages_double) { double('messages') }
+      let(:chat_double) { double('chat') }
+      
       before do
-        allow(anthropic_client).to receive(:messages).and_raise(
+        allow(anthropic_client).to receive(:messages).and_return(messages_double)
+        allow(messages_double).to receive(:create).and_raise(
           Net::HTTPServiceUnavailable.new('1.1', '529', 'Overloaded')
         )
         

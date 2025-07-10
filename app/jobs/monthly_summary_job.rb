@@ -83,7 +83,15 @@ class MonthlySummaryJob < ApplicationJob
     
     system_prompt = AiPrompts.system_prompt_for(:monthly_summary)
     
-    ai_service.generate_response(prompt, system_prompt, temperature: 0.7)
+    Rails.logger.info "Calling AI API for monthly summary generation..."
+    Rails.logger.debug "Prompt length: #{prompt.length} characters"
+    
+    response = ai_service.generate_response(prompt, system_prompt, temperature: 0.7)
+    
+    Rails.logger.info "AI API call successful. Response length: #{response.length} characters"
+    Rails.logger.debug "First 100 chars of AI response: #{response[0..99]}..."
+    
+    response
   end
   
   def extract_monthly_highlights(entries, goals)
