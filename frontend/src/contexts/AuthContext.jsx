@@ -48,7 +48,10 @@ export const AuthProvider = ({ children }) => {
         user: { email, password }
       });
 
-      const token = response.headers['authorization']?.split(' ')[1];
+      // Check both lowercase and uppercase for the authorization header
+      const authHeader = response.headers['authorization'] || response.headers['Authorization'];
+      const token = authHeader?.split(' ')[1];
+      
       if (token) {
         localStorage.setItem('authToken', token);
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -57,7 +60,7 @@ export const AuthProvider = ({ children }) => {
       setUser(response.data.data);
       return { success: true };
     } catch (err) {
-      const message = err.response?.data?.status?.message || 'Login failed';
+      const message = err.response?.data?.status?.message || err.response?.data?.error || 'Login failed';
       setError(message);
       return { success: false, error: message };
     }
@@ -74,7 +77,10 @@ export const AuthProvider = ({ children }) => {
         }
       });
 
-      const token = response.headers['authorization']?.split(' ')[1];
+      // Check both lowercase and uppercase for the authorization header
+      const authHeader = response.headers['authorization'] || response.headers['Authorization'];
+      const token = authHeader?.split(' ')[1];
+      
       if (token) {
         localStorage.setItem('authToken', token);
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;

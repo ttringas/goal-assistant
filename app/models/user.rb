@@ -9,6 +9,7 @@ class User < ApplicationRecord
   has_many :goals, dependent: :destroy
   has_many :progress_entries, dependent: :destroy
   has_many :summaries, dependent: :destroy
+  has_many :ai_summaries, dependent: :destroy
 
   # Validations
   validates :email, presence: true, uniqueness: true

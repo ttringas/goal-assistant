@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_10_213319) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_10_220950) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -22,10 +22,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_10_213319) do
     t.jsonb "metadata", default: {}
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
     t.index ["period_end"], name: "index_ai_summaries_on_period_end"
     t.index ["period_start"], name: "index_ai_summaries_on_period_start"
-    t.index ["summary_type", "period_start", "period_end"], name: "index_ai_summaries_on_type_and_period", unique: true
     t.index ["summary_type"], name: "index_ai_summaries_on_summary_type"
+    t.index ["user_id", "summary_type", "period_start", "period_end"], name: "index_ai_summaries_on_user_type_and_period", unique: true
+    t.index ["user_id"], name: "index_ai_summaries_on_user_id"
   end
 
   create_table "goals", force: :cascade do |t|
@@ -83,6 +85,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_10_213319) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  add_foreign_key "ai_summaries", "users"
   add_foreign_key "goals", "users"
   add_foreign_key "progress_entries", "goals"
   add_foreign_key "progress_entries", "users"

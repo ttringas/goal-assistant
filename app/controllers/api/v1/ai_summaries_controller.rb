@@ -1,6 +1,6 @@
-class Api::V1::AiSummariesController < ApplicationController
+class Api::V1::AiSummariesController < Api::V1::BaseController
   def index
-    summaries = AiSummary.all
+    summaries = current_user.ai_summaries
     
     summaries = summaries.where(summary_type: params[:type]) if params[:type].present?
     
@@ -14,7 +14,7 @@ class Api::V1::AiSummariesController < ApplicationController
   end
 
   def today
-    summary = AiSummary.daily.for_date(Date.current)
+    summary = current_user.ai_summaries.daily.for_date(Date.current)
     
     if summary
       render json: summary
@@ -24,7 +24,7 @@ class Api::V1::AiSummariesController < ApplicationController
   end
 
   def show
-    summary = AiSummary.find(params[:id])
+    summary = current_user.ai_summaries.find(params[:id])
     render json: summary
   rescue ActiveRecord::RecordNotFound
     render json: { error: 'Summary not found' }, status: :not_found

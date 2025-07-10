@@ -8,7 +8,7 @@ class Goal < ApplicationRecord
   # Default ordering by created_at (newest first)
   default_scope { order(created_at: :desc) }
 
-  scope :active, -> { where(archived_at: nil) }
+  scope :active, -> { where(archived_at: nil, completed_at: nil) }
   scope :archived, -> { where.not(archived_at: nil) }
   scope :completed, -> { where.not(completed_at: nil) }
   scope :incomplete, -> { where(completed_at: nil) }

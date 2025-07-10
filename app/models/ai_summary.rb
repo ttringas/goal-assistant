@@ -1,4 +1,6 @@
 class AiSummary < ApplicationRecord
+  belongs_to :user
+  
   SUMMARY_TYPES = %w[daily weekly monthly].freeze
 
   validates :content, presence: true

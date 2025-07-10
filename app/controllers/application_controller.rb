@@ -1,4 +1,6 @@
 class ApplicationController < ActionController::API
+  include ActionController::Helpers
+  
   before_action :set_default_format
   before_action :configure_permitted_parameters, if: :devise_controller?
 

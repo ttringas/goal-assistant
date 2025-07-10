@@ -29,6 +29,7 @@ api.interceptors.response.use(
   },
   (error) => {
     const message = error.response?.data?.error || 
+                   error.response?.data?.status?.message ||
                    error.response?.data?.errors?.join(', ') ||
                    'An unexpected error occurred';
     
