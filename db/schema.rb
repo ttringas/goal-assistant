@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_10_181641) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_10_201553) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -47,6 +47,20 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_10_181641) do
     t.datetime "updated_at", null: false
     t.index ["entry_date"], name: "index_progress_entries_on_entry_date", unique: true
     t.index ["goal_id"], name: "index_progress_entries_on_goal_id"
+  end
+
+  create_table "summaries", force: :cascade do |t|
+    t.string "summary_type", null: false
+    t.text "content"
+    t.date "start_date", null: false
+    t.date "end_date", null: false
+    t.json "metadata", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["end_date"], name: "index_summaries_on_end_date"
+    t.index ["start_date"], name: "index_summaries_on_start_date"
+    t.index ["summary_type", "start_date", "end_date"], name: "index_summaries_on_summary_type_and_start_date_and_end_date", unique: true
+    t.index ["summary_type"], name: "index_summaries_on_summary_type"
   end
 
   add_foreign_key "progress_entries", "goals"

@@ -1,0 +1,27 @@
+default: &default
+  daily_summary:
+    class: DailySummaryJob
+    queue: default
+    schedule: at 11:55pm every day
+    description: "Generate daily summary of progress entries"
+  
+  weekly_summary:
+    class: WeeklySummaryJob
+    queue: default
+    schedule: at 11:59pm every Sunday
+    description: "Generate weekly summary of progress"
+  
+  monthly_summary:
+    class: MonthlySummaryJob
+    queue: default
+    schedule: at 11:59pm on the last day of the month
+    description: "Generate monthly summary with insights"
+
+development:
+  <<: *default
+
+test:
+  # No recurring jobs in test
+
+production:
+  <<: *default

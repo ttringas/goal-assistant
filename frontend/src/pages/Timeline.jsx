@@ -1,12 +1,14 @@
 import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { ChevronDown, ChevronRight, RefreshCw } from 'lucide-react';
 import api from '../services/api';
 
 function Timeline() {
   const [expandedMonths, setExpandedMonths] = useState({});
   const [expandedWeeks, setExpandedWeeks] = useState({});
   const [monthsToShow, setMonthsToShow] = useState(2); // Start with 2 months
+  const [regenerating, setRegenerating] = useState(false);
+  const queryClient = useQueryClient();
 
   // Get progress entries
   const { data: entries = [] } = useQuery({
@@ -17,12 +19,36 @@ function Timeline() {
     }
   });
 
-  // Get AI summaries
-  const { data: summaries = [] } = useQuery({
-    queryKey: ['aiSummaries'],
+  // Get summaries
+  const { data: summaries = [], refetch: refetchSummaries } = useQuery({
+    queryKey: ['summaries'],
     queryFn: async () => {
-      const response = await api.get('/ai_summaries');
+      const response = await api.get('/summaries');
       return response.data;
+    }
+  });
+
+  // Regenerate summaries mutation
+  const regenerateSummaries = useMutation({
+    mutationFn: async () => {
+      const response = await api.post('/summaries/regenerate_all');
+      return response.data;
+    },
+    onSuccess: (data) => {
+      alert(`Regeneration started!\n\nQueued jobs:\n- Daily: ${data.jobs_queued.daily}\n- Weekly: ${data.jobs_queued.weekly}\n- Monthly: ${data.jobs_queued.monthly}\n\n${data.note}`);
+      // Poll for updates every 5 seconds for 2 minutes
+      const pollInterval = setInterval(() => {
+        refetchSummaries();
+      }, 5000);
+      
+      setTimeout(() => {
+        clearInterval(pollInterval);
+        setRegenerating(false);
+      }, 120000); // Stop after 2 minutes
+    },
+    onError: (error) => {
+      alert('Failed to regenerate summaries. Please try again.');
+      setRegenerating(false);
     }
   });
 
@@ -44,9 +70,9 @@ function Timeline() {
       data[monthKey].weeks[weekKey].days[dayKey].entries.push(entry);
     });
 
-    // Add AI summaries
+    // Add summaries
     summaries.forEach(summary => {
-      const startDate = new Date(summary.period_start);
+      const startDate = new Date(summary.start_date);
       const monthKey = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}`;
 
       if (summary.summary_type === 'monthly') {
@@ -59,7 +85,7 @@ function Timeline() {
         data[monthKey].weeks[weekKey].summary = summary;
       } else if (summary.summary_type === 'daily') {
         const weekKey = getWeekKey(startDate);
-        const dayKey = summary.period_start;
+        const dayKey = summary.start_date;
         if (!data[monthKey]) data[monthKey] = { weeks: {}, summary: null };
         if (!data[monthKey].weeks[weekKey]) data[monthKey].weeks[weekKey] = { days: {}, summary: null };
         if (!data[monthKey].weeks[weekKey].days[dayKey]) data[monthKey].weeks[weekKey].days[dayKey] = { entries: [], summary: null };
@@ -140,9 +166,26 @@ function Timeline() {
     setMonthsToShow(prev => prev + 2);
   };
 
+  const handleRegenerate = () => {
+    if (confirm('This will regenerate all summaries for the past 3 months. This may take a few minutes. Continue?')) {
+      setRegenerating(true);
+      regenerateSummaries.mutate();
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-light mb-8 text-gray-800">Timeline</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-2xl font-light text-gray-800">Timeline</h1>
+        <button
+          onClick={handleRegenerate}
+          disabled={regenerating}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <RefreshCw className={`w-4 h-4 ${regenerating ? 'animate-spin' : ''}`} />
+          {regenerating ? 'Regenerating...' : 'Regenerate all summaries'}
+        </button>
+      </div>
       
       <div className="space-y-6">
         {displayedMonths.map(monthKey => {

@@ -125,11 +125,11 @@ puts "Creating AI summaries..."
     "A week of breakthroughs! Your meditation practice reached a new level of depth. The running milestone you've been working towards is finally within reach. Business development took a big leap forward with key decisions made. Celebrate these wins!"
   ]
   
-  AiSummary.create!(
+  Summary.create!(
     content: content_options.sample,
     summary_type: 'weekly',
-    period_start: start_date,
-    period_end: end_date,
+    start_date: start_date,
+    end_date: end_date,
     metadata: {
       goals_mentioned: ['meditation', 'exercise', 'business', 'reading'],
       sentiment: ['positive', 'encouraging', 'motivating'].sample,
@@ -155,11 +155,11 @@ end
     "A month of steady advancement. You're seeing compound effects from consistent daily practices. Meditation depth has increased noticeably. Running endurance continues to build - you completed your first 5K! Business strategy is becoming clearer with each planning session. Well done!"
   ]
   
-  AiSummary.create!(
+  Summary.create!(
     content: content_options[month_offset % content_options.length],
     summary_type: 'monthly',
-    period_start: month_start,
-    period_end: month_end,
+    start_date: month_start,
+    end_date: month_end,
     metadata: {
       goals_mentioned: ['meditation', 'exercise', 'business', 'reading'],
       sentiment: 'positive',
@@ -171,11 +171,11 @@ end
 end
 
 # Create today's AI insight
-AiSummary.create!(
+Summary.create!(
   content: "You're building great momentum! Your consistency with exercise is really showing, and the business development work you've been doing is starting to pay off. Don't worry too much about the reading goal - progress isn't always linear. Focus on what's working and be kind to yourself about the rest.",
   summary_type: 'daily',
-  period_start: Date.current,
-  period_end: Date.current,
+  start_date: Date.current,
+  end_date: Date.current,
   metadata: {
     goals_mentioned: ['exercise', 'business', 'reading'],
     sentiment: 'encouraging',
@@ -186,4 +186,4 @@ AiSummary.create!(
 puts "Seeding complete!"
 puts "Created #{Goal.count} goals"
 puts "Created #{ProgressEntry.count} progress entries"
-puts "Created #{AiSummary.count} AI summaries"
+puts "Created #{Summary.count} summaries"

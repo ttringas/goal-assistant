@@ -7,6 +7,11 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
+      resources :summaries, only: [:index] do
+        collection do
+          post :regenerate_all
+        end
+      end
       resources :goals do
         member do
           patch :complete
