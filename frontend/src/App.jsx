@@ -9,6 +9,8 @@ import Goals from './pages/Goals';
 import GoalDetails from './pages/GoalDetails';
 import NewGoal from './pages/NewGoal';
 import EditGoal from './pages/EditGoal';
+import CheckIn from './pages/CheckIn';
+import Timeline from './pages/Timeline';
 import NotFound from './pages/NotFound';
 
 import './App.css';
@@ -56,6 +58,8 @@ function App() {
             <Route path="goals/new" element={<NewGoal />} />
             <Route path="goals/:id" element={<GoalDetails />} />
             <Route path="goals/:id/edit" element={<EditGoal />} />
+            <Route path="checkin" element={<CheckIn />} />
+            <Route path="timeline" element={<Timeline />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

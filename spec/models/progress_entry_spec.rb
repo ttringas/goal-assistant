@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe ProgressEntry, type: :model do
   describe 'associations' do
-    it { should belong_to(:goal) }
+    it { should belong_to(:goal).optional }
   end
 
   describe 'validations' do

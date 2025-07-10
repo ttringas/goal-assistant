@@ -64,14 +64,13 @@ test.describe('App Loading Tests', () => {
   test('routing works correctly', async ({ page }) => {
     await page.goto('/');
     
-    // Check if we're on the home page
-    await expect(page).toHaveURL(/^http:\/\/localhost:\d+\/?$/);
+    // Check if we're redirected to /goals
+    await expect(page).toHaveURL(/\/goals$/);
     
     // Try navigating to a non-existent route
     await page.goto('/non-existent-route');
     
-    // Should either redirect to home or show a 404 component
-    const app = page.locator('#root');
-    await expect(app).toBeVisible();
+    // Should show 404 page
+    await expect(page.locator('text=404')).toBeVisible();
   });
 });

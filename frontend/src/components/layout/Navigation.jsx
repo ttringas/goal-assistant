@@ -21,7 +21,18 @@ function Navigation() {
           >
             Goals
           </Link>
-          {/* We'll add more links in future phases */}
+          <Link 
+            to="/checkin" 
+            className={`nav-link ${isActive('/checkin') ? 'active' : ''}`}
+          >
+            Check-in
+          </Link>
+          <Link 
+            to="/timeline" 
+            className={`nav-link ${isActive('/timeline') ? 'active' : ''}`}
+          >
+            Timeline
+          </Link>
         </div>
       </div>
     </nav>

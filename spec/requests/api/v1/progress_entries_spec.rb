@@ -157,4 +157,39 @@ RSpec.describe "Api::V1::ProgressEntries", type: :request do
       end
     end
   end
+
+  describe "GET /api/v1/progress_entries/today" do
+    context "when an entry exists for today" do
+      let!(:today_entry) { create(:progress_entry, entry_date: Date.current, content: "Today's progress") }
+
+      it "returns today's progress entry" do
+        get "/api/v1/progress_entries/today"
+        expect(response).to have_http_status(:success)
+        
+        json = JSON.parse(response.body)
+        expect(json["id"]).to eq(today_entry.id)
+        expect(json["content"]).to eq("Today's progress")
+        expect(json["entry_date"]).to eq(Date.current.to_s)
+      end
+
+      it "includes the associated goal if present" do
+        get "/api/v1/progress_entries/today"
+        json = JSON.parse(response.body)
+        
+        expect(json).to have_key("goal")
+      end
+    end
+
+    context "when no entry exists for today" do
+      it "returns an empty entry template" do
+        get "/api/v1/progress_entries/today"
+        expect(response).to have_http_status(:success)
+        
+        json = JSON.parse(response.body)
+        expect(json["entry_date"]).to eq(Date.current.to_s)
+        expect(json["content"]).to eq("")
+        expect(json).not_to have_key("id")
+      end
+    end
+  end
 end

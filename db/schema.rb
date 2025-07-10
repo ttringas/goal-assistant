@@ -10,9 +10,23 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_10_143712) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_10_181641) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "ai_summaries", force: :cascade do |t|
+    t.text "content", null: false
+    t.string "summary_type", null: false
+    t.date "period_start", null: false
+    t.date "period_end", null: false
+    t.jsonb "metadata", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["period_end"], name: "index_ai_summaries_on_period_end"
+    t.index ["period_start"], name: "index_ai_summaries_on_period_start"
+    t.index ["summary_type", "period_start", "period_end"], name: "index_ai_summaries_on_type_and_period", unique: true
+    t.index ["summary_type"], name: "index_ai_summaries_on_summary_type"
+  end
 
   create_table "goals", force: :cascade do |t|
     t.string "title"
@@ -28,7 +42,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_10_143712) do
   create_table "progress_entries", force: :cascade do |t|
     t.text "content"
     t.date "entry_date"
-    t.bigint "goal_id", null: false
+    t.bigint "goal_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["entry_date"], name: "index_progress_entries_on_entry_date", unique: true
