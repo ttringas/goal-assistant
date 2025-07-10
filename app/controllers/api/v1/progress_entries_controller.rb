@@ -1,6 +1,6 @@
-class Api::V1::ProgressEntriesController < ApplicationController
+class Api::V1::ProgressEntriesController < Api::V1::BaseController
   def index
-    entries = ProgressEntry.includes(:goal)
+    entries = current_user.progress_entries.includes(:goal)
 
     if params[:start_date].present? && params[:end_date].present?
       entries = entries.by_date_range(params[:start_date], params[:end_date])
@@ -12,7 +12,7 @@ class Api::V1::ProgressEntriesController < ApplicationController
   end
 
   def today
-    entry = ProgressEntry.includes(:goal).for_date(Date.current)
+    entry = ProgressEntry.includes(:goal).for_date(Date.current, current_user)
     
     if entry
       render json: entry.as_json(include: :goal)
@@ -24,7 +24,8 @@ class Api::V1::ProgressEntriesController < ApplicationController
   def create
     entry = ProgressEntry.upsert_for_date(
       params[:progress_entry][:entry_date] || Date.current,
-      progress_entry_params
+      current_user,
+      progress_entry_params.merge(user: current_user)
     )
 
     render json: entry.as_json(include: :goal), status: :created
@@ -33,7 +34,7 @@ class Api::V1::ProgressEntriesController < ApplicationController
   end
 
   def update
-    entry = ProgressEntry.find(params[:id])
+    entry = current_user.progress_entries.find(params[:id])
 
     if entry.update(progress_entry_params)
       render json: entry.as_json(include: :goal)
@@ -47,6 +48,12 @@ class Api::V1::ProgressEntriesController < ApplicationController
   private
 
   def progress_entry_params
-    params.require(:progress_entry).permit(:content, :entry_date, :goal_id)
+    permitted = params.require(:progress_entry).permit(:content, :entry_date, :goal_id)
+    # Ensure goal_id belongs to current_user if provided
+    if permitted[:goal_id].present?
+      goal = current_user.goals.find_by(id: permitted[:goal_id])
+      permitted[:goal_id] = goal&.id
+    end
+    permitted
   end
 end

@@ -75,6 +75,11 @@ body {
 .nav-links {
   display: flex;
   gap: 2rem;
+  align-items: center;
+}
+
+.nav-spacer {
+  flex: 1;
 }
 
 .nav-link {
@@ -83,6 +88,12 @@ body {
   font-weight: 400;
   transition: color 0.2s;
   font-size: 0.9375rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
 }
 
 .nav-link:hover {

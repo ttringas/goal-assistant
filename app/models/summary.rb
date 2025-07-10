@@ -1,4 +1,6 @@
 class Summary < ApplicationRecord
+  belongs_to :user
+  
   SUMMARY_TYPES = %w[daily weekly monthly].freeze
 
   validates :summary_type, presence: true, inclusion: { in: SUMMARY_TYPES }
@@ -7,7 +9,7 @@ class Summary < ApplicationRecord
   validates :content, presence: true
 
   validate :end_date_after_start_date
-  validates :summary_type, uniqueness: { scope: [:start_date, :end_date] }
+  validates :summary_type, uniqueness: { scope: [:user_id, :start_date, :end_date] }
 
   scope :daily, -> { where(summary_type: 'daily') }
   scope :weekly, -> { where(summary_type: 'weekly') }
@@ -15,8 +17,8 @@ class Summary < ApplicationRecord
   scope :for_date_range, ->(start_date, end_date) { where('start_date >= ? AND end_date <= ?', start_date, end_date) }
   scope :recent_first, -> { order(start_date: :desc) }
 
-  def self.find_or_initialize_for(summary_type, start_date, end_date)
-    find_or_initialize_by(
+  def self.find_or_initialize_for(summary_type, start_date, end_date, user)
+    where(user: user).find_or_initialize_by(
       summary_type: summary_type,
       start_date: start_date,
       end_date: end_date

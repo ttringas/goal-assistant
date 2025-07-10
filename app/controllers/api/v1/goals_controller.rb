@@ -1,8 +1,8 @@
-class Api::V1::GoalsController < ApplicationController
+class Api::V1::GoalsController < Api::V1::BaseController
   before_action :set_goal, only: [:show, :update, :destroy, :complete, :archive]
 
   def index
-    goals = Goal.all
+    goals = current_user.goals
     goals = goals.active if params[:active] == 'true'
     goals = goals.archived if params[:archived] == 'true'
     goals = goals.completed if params[:completed] == 'true'
@@ -16,7 +16,7 @@ class Api::V1::GoalsController < ApplicationController
   end
 
   def create
-    goal = Goal.new(goal_params)
+    goal = current_user.goals.build(goal_params)
 
     if goal.save
       render json: goal, status: :created
@@ -51,7 +51,7 @@ class Api::V1::GoalsController < ApplicationController
   private
 
   def set_goal
-    @goal = Goal.find(params[:id])
+    @goal = current_user.goals.find(params[:id])
   rescue ActiveRecord::RecordNotFound
     render json: { error: 'Goal not found' }, status: :not_found
   end

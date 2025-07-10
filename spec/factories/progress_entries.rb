@@ -1,8 +1,9 @@
 FactoryBot.define do
   factory :progress_entry do
+    user
     content { Faker::Lorem.paragraph }
     entry_date { Date.current }
-    association :goal
+    association :goal, factory: :goal
     
     trait :past do
       entry_date { Faker::Date.between(from: 1.month.ago, to: 1.day.ago) }

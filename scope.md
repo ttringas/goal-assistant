@@ -113,7 +113,7 @@ An AI-powered goal tracking application that helps users set goals, track daily 
    - Goal belongs_to :user
    - ProgressEntry belongs_to :user  
    - Summary belongs_to :user
-4. Create migration to assign existing data to a default user
+4. Create migration to assign existing data to a default user with email tyler@tylertringas.com
 5. Update all controllers with authentication
    - Add before_action :authenticate_user!
    - Scope all queries to current_user

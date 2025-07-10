@@ -3,7 +3,8 @@ class AiService
   class RateLimitError < Error; end
   class InvalidResponseError < Error; end
 
-  def initialize
+  def initialize(user = nil)
+    @user = user
     @anthropic_client = create_anthropic_client if anthropic_available?
     @openai_client = create_openai_client if openai_available?
     @default_provider = ENV.fetch('DEFAULT_AI_PROVIDER', 'anthropic').to_sym
@@ -65,11 +66,13 @@ class AiService
   private
 
   def anthropic_available?
-    ENV['ANTHROPIC_API_KEY'].present?
+    api_key = @user&.anthropic_api_key.presence || ENV['ANTHROPIC_API_KEY']
+    api_key.present?
   end
 
   def openai_available?
-    ENV['OPENAI_API_KEY'].present?
+    api_key = @user&.openai_api_key.presence || ENV['OPENAI_API_KEY']
+    api_key.present?
   end
 
   def both_providers_available?
@@ -78,15 +81,17 @@ class AiService
 
   def create_anthropic_client
     require 'anthropic'
+    api_key = @user&.anthropic_api_key.presence || ENV['ANTHROPIC_API_KEY']
     Anthropic::Client.new(
-      api_key: ENV['ANTHROPIC_API_KEY']
+      api_key: api_key
     )
   end
 
   def create_openai_client
     require 'openai'
+    api_key = @user&.openai_api_key.presence || ENV['OPENAI_API_KEY']
     OpenAI::Client.new(
-      access_token: ENV['OPENAI_API_KEY']
+      access_token: api_key
     )
   end
 

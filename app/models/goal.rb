@@ -1,4 +1,5 @@
 class Goal < ApplicationRecord
+  belongs_to :user
   has_many :progress_entries, dependent: :destroy
 
   validates :title, presence: true

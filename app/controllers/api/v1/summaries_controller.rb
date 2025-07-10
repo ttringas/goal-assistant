@@ -1,6 +1,6 @@
-class Api::V1::SummariesController < ApplicationController
+class Api::V1::SummariesController < Api::V1::BaseController
   def index
-    summaries = Summary.all
+    summaries = current_user.summaries
     summaries = summaries.where(summary_type: params[:type]) if params[:type].present?
     
     if params[:start_date].present? && params[:end_date].present?
@@ -28,7 +28,7 @@ class Api::V1::SummariesController < ApplicationController
     # Only queue monthly summaries for now
     current_date = start_date.beginning_of_month
     while current_date <= end_date
-      MonthlySummaryJob.perform_later(current_date.end_of_month)
+      MonthlySummaryJob.perform_later(current_user.id, current_date.end_of_month)
       jobs_queued[:monthly] += 1
       current_date += 1.month
     end

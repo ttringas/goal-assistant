@@ -3,15 +3,16 @@ class MonthlySummaryJob < ApplicationJob
   
   queue_as :default
 
-  def perform(date = Date.current)
-    Rails.logger.info "Generating monthly summary for #{date.strftime('%B %Y')}"
+  def perform(user_id, date = Date.current)
+    user = User.find(user_id)
+    Rails.logger.info "Generating monthly summary for #{date.strftime('%B %Y')} for user #{user.email}"
     
     # Calculate month boundaries
     start_date = date.beginning_of_month
     end_date = date.end_of_month
     
-    # Get progress entries for the month
-    entries = ProgressEntry.where(entry_date: start_date..end_date).order(:entry_date)
+    # Get progress entries for the month for this user
+    entries = user.progress_entries.where(entry_date: start_date..end_date).order(:entry_date)
     
     # Skip if no entries
     if entries.empty?
@@ -20,8 +21,8 @@ class MonthlySummaryJob < ApplicationJob
     end
     
     # Get all goals (including archived ones for historical accuracy)
-    goals = Goal.all.to_a
-    active_goals = Goal.active.to_a
+    goals = user.goals.to_a
+    active_goals = user.goals.active.to_a
     
     # Calculate comprehensive stats
     total_entries = entries.count
@@ -30,7 +31,7 @@ class MonthlySummaryJob < ApplicationJob
     consistency_rate = ((days_with_entries.to_f / days_in_month) * 100).round
     
     # Get weekly summaries for the month
-    weekly_summaries = Summary.weekly.where(start_date: start_date..end_date)
+    weekly_summaries = user.summaries.weekly.where(start_date: start_date..end_date)
     
     # Extract key achievements and patterns
     goals_progressed_ids = extract_goal_mentions(entries, goals)
@@ -38,7 +39,7 @@ class MonthlySummaryJob < ApplicationJob
     weekly_patterns = extract_weekly_patterns(entries, weekly_summaries)
     
     # Generate summary using AI
-    ai_service = AiService.new
+    ai_service = AiService.new(user)
     summary_content = generate_monthly_summary(
       ai_service,
       date,
@@ -50,7 +51,7 @@ class MonthlySummaryJob < ApplicationJob
     )
     
     # Find or create summary
-    summary = Summary.find_or_initialize_for('monthly', start_date, end_date)
+    summary = Summary.find_or_initialize_for('monthly', start_date, end_date, user)
     summary.content = summary_content
     summary.metadata = {
       total_entries: total_entries,

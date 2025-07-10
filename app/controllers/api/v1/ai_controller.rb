@@ -1,4 +1,4 @@
-class Api::V1::AiController < ApplicationController
+class Api::V1::AiController < Api::V1::BaseController
   before_action :initialize_ai_service
 
   def infer_goal_type
@@ -50,7 +50,7 @@ class Api::V1::AiController < ApplicationController
   private
 
   def initialize_ai_service
-    @ai_service = AiService.new
+    @ai_service = AiService.new(current_user)
   rescue => e
     Rails.logger.error "Failed to initialize AI service: #{e.message}"
     render json: { error: 'AI service configuration error' }, status: :internal_server_error

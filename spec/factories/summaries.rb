@@ -1,5 +1,6 @@
 FactoryBot.define do
   factory :summary do
+    user
     summary_type { "daily" }
     content { "Today was productive. Completed meditation practice and made progress on the mobile app project." }
     start_date { Date.current }

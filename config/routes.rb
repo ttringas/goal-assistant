@@ -1,4 +1,8 @@
 Rails.application.routes.draw do
+  devise_for :users, path: 'api/v1/users', controllers: {
+    sessions: 'users/sessions',
+    registrations: 'users/registrations'
+  }
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
@@ -34,6 +38,11 @@ Rails.application.routes.draw do
       namespace :ai do
         post :infer_goal_type
         post :improve_goal
+      end
+      
+      resource :user, only: [:update] do
+        get :current
+        patch :update_api_keys
       end
     end
   end
