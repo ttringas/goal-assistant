@@ -35,6 +35,10 @@ gem "thruster", require: false
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
 gem "rack-cors"
 
+# AI Integration
+gem "anthropic"
+gem "ruby-openai"
+
 group :development do
   gem "foreman", "~> 0.88"
 end
@@ -55,4 +59,7 @@ group :development, :test do
   gem "faker", "~> 3.5"
   gem "shoulda-matchers", "~> 6.4"
   gem "database_cleaner-active_record", "~> 2.2"
+  
+  # Environment variables
+  gem "dotenv-rails"
 end

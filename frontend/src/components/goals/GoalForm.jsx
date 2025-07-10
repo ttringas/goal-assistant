@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { formatDateForInput } from '../../utils/dateHelpers';
 import Button from '../shared/Button';
 import Card from '../shared/Card';
+import api from '../../services/api';
 
 function GoalForm({ goal, onSubmit, isLoading }) {
   const navigate = useNavigate();
@@ -14,6 +15,9 @@ function GoalForm({ goal, onSubmit, isLoading }) {
   });
 
   const [errors, setErrors] = useState({});
+  const [aiSuggestions, setAiSuggestions] = useState(null);
+  const [inferringType, setInferringType] = useState(false);
+  const [loadingImprovements, setLoadingImprovements] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -51,6 +55,56 @@ function GoalForm({ goal, onSubmit, isLoading }) {
     onSubmit(formData);
   };
 
+  const handleInferType = async () => {
+    if (!formData.title.trim()) {
+      setErrors({ title: 'Please enter a title first' });
+      return;
+    }
+
+    setInferringType(true);
+    try {
+      const response = await api.post('/ai/infer_goal_type', {
+        title: formData.title,
+        description: formData.description
+      });
+
+      if (response.data.goal_type) {
+        setFormData(prev => ({
+          ...prev,
+          goal_type: response.data.goal_type
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to infer goal type:', error);
+    } finally {
+      setInferringType(false);
+    }
+  };
+
+  const handleGetImprovements = async () => {
+    if (!formData.title.trim()) {
+      setErrors({ title: 'Please enter a title first' });
+      return;
+    }
+
+    setLoadingImprovements(true);
+    try {
+      const response = await api.post('/ai/improve_goal', {
+        title: formData.title,
+        description: formData.description,
+        goal_type: formData.goal_type
+      });
+
+      if (response.data.formatted_suggestions) {
+        setAiSuggestions(response.data.formatted_suggestions);
+      }
+    } catch (error) {
+      console.error('Failed to get improvements:', error);
+    } finally {
+      setLoadingImprovements(false);
+    }
+  };
+
   return (
     <Card>
       <form onSubmit={handleSubmit}>
@@ -86,7 +140,17 @@ function GoalForm({ goal, onSubmit, isLoading }) {
 
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="goal_type">Type</label>
+              <label htmlFor="goal_type">
+                Type
+                <button
+                  type="button"
+                  onClick={handleInferType}
+                  disabled={inferringType}
+                  className="ml-2 text-sm text-blue-500 hover:text-blue-600 disabled:text-gray-400"
+                >
+                  {inferringType ? '...' : 'AI Suggest'}
+                </button>
+              </label>
               <select
                 id="goal_type"
                 name="goal_type"
@@ -112,6 +176,32 @@ function GoalForm({ goal, onSubmit, isLoading }) {
                 className="form-input"
               />
             </div>
+          </div>
+
+          {/* AI Suggestions Section */}
+          <div className="mt-6">
+            <button
+              type="button"
+              onClick={handleGetImprovements}
+              disabled={loadingImprovements}
+              className="text-sm bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 disabled:opacity-50"
+            >
+              {loadingImprovements ? 'Getting AI suggestions...' : 'Get AI suggestions to improve this goal'}
+            </button>
+
+            {aiSuggestions && (
+              <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h3 className="text-sm font-medium text-gray-800 mb-2">AI Suggestions:</h3>
+                <ul className="space-y-2">
+                  {aiSuggestions.map((suggestion, index) => (
+                    <li key={index} className="text-sm text-gray-700 flex items-start">
+                      <span className="text-blue-500 mr-2">•</span>
+                      <span>{suggestion}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </Card.Body>
 

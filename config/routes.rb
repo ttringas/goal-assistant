@@ -25,6 +25,11 @@ Rails.application.routes.draw do
           get :today
         end
       end
+      
+      namespace :ai do
+        post :infer_goal_type
+        post :improve_goal
+      end
     end
   end
 end
