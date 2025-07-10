@@ -9,13 +9,13 @@ class Api::V1::SummariesController < ApplicationController
       summaries = summaries.for_date_range(start_date, end_date)
     end
     
-    summaries = summaries.recent_first.includes(:metadata)
+    summaries = summaries.recent_first
     
     render json: summaries.map { |summary| serialize_summary(summary) }
   end
 
   def regenerate_all
-    # Queue regeneration jobs for the past 3 months
+    # Only queue monthly summaries for now
     end_date = Date.current
     start_date = 3.months.ago.to_date
     
@@ -25,21 +25,7 @@ class Api::V1::SummariesController < ApplicationController
       monthly: 0
     }
     
-    # Queue daily summaries
-    (start_date..end_date).each do |date|
-      DailySummaryJob.perform_later(date)
-      jobs_queued[:daily] += 1
-    end
-    
-    # Queue weekly summaries (for each Sunday)
-    current_date = start_date.beginning_of_week
-    while current_date <= end_date
-      WeeklySummaryJob.perform_later(current_date + 6.days) # Sunday
-      jobs_queued[:weekly] += 1
-      current_date += 1.week
-    end
-    
-    # Queue monthly summaries
+    # Only queue monthly summaries for now
     current_date = start_date.beginning_of_month
     while current_date <= end_date
       MonthlySummaryJob.perform_later(current_date.end_of_month)

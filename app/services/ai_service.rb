@@ -104,7 +104,12 @@ class AiService
       )
 
       check_anthropic_response(response)
-      response.dig("content", 0, "text")
+      # The Anthropic gem returns a response object, not a hash
+      if response.respond_to?(:content)
+        response.content.first.text
+      else
+        response.dig("content", 0, "text")
+      end
     rescue Net::HTTPTooManyRequests, Net::HTTPServiceUnavailable => e
       if e.message.include?("529") || retries >= @max_retries
         raise RateLimitError.new("Anthropic rate limit: #{e.message}")
@@ -148,14 +153,26 @@ class AiService
   end
 
   def check_anthropic_response(response)
-    if response["error"]
-      error_type = response.dig("error", "type")
-      error_message = response.dig("error", "message")
-      
+    # Handle both hash responses and object responses from the Anthropic gem
+    error = nil
+    error_type = nil
+    error_message = nil
+    
+    if response.is_a?(Hash) && response["error"]
+      error = response["error"]
+      error_type = error["type"]
+      error_message = error["message"]
+    elsif response.respond_to?(:error) && response.error
+      error = response.error
+      error_type = error.type if error.respond_to?(:type)
+      error_message = error.message if error.respond_to?(:message)
+    end
+    
+    if error
       if error_type == "rate_limit_error"
-        raise RateLimitError.new(error_message)
+        raise RateLimitError.new(error_message || "Rate limit exceeded")
       else
-        raise InvalidResponseError.new("Anthropic error: #{error_message}")
+        raise InvalidResponseError.new("Anthropic error: #{error_message || 'Unknown error'}")
       end
     end
   end

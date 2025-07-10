@@ -35,7 +35,7 @@ function Timeline() {
       return response.data;
     },
     onSuccess: (data) => {
-      alert(`Regeneration started!\n\nQueued jobs:\n- Daily: ${data.jobs_queued.daily}\n- Weekly: ${data.jobs_queued.weekly}\n- Monthly: ${data.jobs_queued.monthly}\n\n${data.note}`);
+      alert(`Regeneration started!\n\nQueued monthly summary jobs: ${data.jobs_queued.monthly}\n\n${data.note}`);
       // Poll for updates every 5 seconds for 2 minutes
       const pollInterval = setInterval(() => {
         refetchSummaries();
@@ -167,7 +167,7 @@ function Timeline() {
   };
 
   const handleRegenerate = () => {
-    if (confirm('This will regenerate all summaries for the past 3 months. This may take a few minutes. Continue?')) {
+    if (confirm('This will regenerate monthly summaries for the past 3 months. Continue?')) {
       setRegenerating(true);
       regenerateSummaries.mutate();
     }
@@ -183,7 +183,7 @@ function Timeline() {
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           <RefreshCw className={`w-4 h-4 ${regenerating ? 'animate-spin' : ''}`} />
-          {regenerating ? 'Regenerating...' : 'Regenerate all summaries'}
+          {regenerating ? 'Regenerating...' : 'Regenerate monthly summaries'}
         </button>
       </div>
       
