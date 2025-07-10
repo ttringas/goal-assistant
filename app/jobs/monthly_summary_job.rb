@@ -1,4 +1,6 @@
 class MonthlySummaryJob < ApplicationJob
+  include SummaryHelpers
+  
   queue_as :default
 
   def perform(date = Date.current)
@@ -31,7 +33,7 @@ class MonthlySummaryJob < ApplicationJob
     weekly_summaries = Summary.weekly.where(start_date: start_date..end_date)
     
     # Extract key achievements and patterns
-    goals_progressed = extract_goal_mentions(entries, goals)
+    goals_progressed_ids = extract_goal_mentions(entries, goals)
     monthly_highlights = extract_monthly_highlights(entries, goals)
     weekly_patterns = extract_weekly_patterns(entries, weekly_summaries)
     
@@ -42,7 +44,7 @@ class MonthlySummaryJob < ApplicationJob
       date,
       total_entries,
       consistency_rate,
-      goals_progressed,
+      goals_progressed_ids,
       monthly_highlights,
       weekly_patterns
     )
@@ -54,7 +56,7 @@ class MonthlySummaryJob < ApplicationJob
       total_entries: total_entries,
       days_with_entries: days_with_entries,
       consistency_rate: consistency_rate,
-      goals_progressed: goals_progressed.map(&:id),
+      goals_progressed: goals_progressed_ids,
       generated_at: Time.current
     }
     
@@ -72,27 +74,16 @@ class MonthlySummaryJob < ApplicationJob
       month_year: date.strftime('%B %Y'),
       total_entries: total_entries,
       consistency_rate: consistency_rate,
-      goals_progressed: goals_progressed.count,
+      goals_progressed: goals_progressed.length,
       monthly_highlights: highlights,
       weekly_patterns: patterns
     })
     
+    raise "Failed to render prompt template" if prompt.nil?
+    
     system_prompt = AiPrompts.system_prompt_for(:monthly_summary)
     
     ai_service.generate_response(prompt, system_prompt, temperature: 0.7)
-  end
-  
-  def extract_goal_mentions(entries, goals)
-    mentioned_goals = []
-    entries_text = entries.map(&:content).join(' ').downcase
-    
-    goals.each do |goal|
-      if entries_text.include?(goal.title.downcase)
-        mentioned_goals << goal
-      end
-    end
-    
-    mentioned_goals.uniq
   end
   
   def extract_monthly_highlights(entries, goals)

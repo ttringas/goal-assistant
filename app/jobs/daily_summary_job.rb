@@ -1,4 +1,6 @@
 class DailySummaryJob < ApplicationJob
+  include SummaryHelpers
+  
   queue_as :default
 
   def perform(date = Date.current)
@@ -42,29 +44,18 @@ class DailySummaryJob < ApplicationJob
   private
   
   def generate_daily_summary(ai_service, entries, goals, date)
-    entries_text = entries.map { |e| "- #{e.content}" }.join("\n")
-    goals_text = goals.map { |g| "- #{g.title} (#{g.goal_type})" }.join("\n")
+    entries_text = format_entries_for_prompt(entries)
+    goals_text = format_goals_for_prompt(goals)
     
     prompt = AiPrompts.render_template(:daily_summary_generation, {
       entries: entries_text,
       goals: goals_text
     })
     
+    raise "Failed to render prompt template" if prompt.nil?
+    
     system_prompt = AiPrompts.system_prompt_for(:daily_summary)
     
     ai_service.generate_response(prompt, system_prompt, temperature: 0.7)
-  end
-  
-  def extract_goal_mentions(entries, goals)
-    mentioned_goals = []
-    entries_text = entries.map(&:content).join(' ').downcase
-    
-    goals.each do |goal|
-      if entries_text.include?(goal.title.downcase)
-        mentioned_goals << goal.id
-      end
-    end
-    
-    mentioned_goals
   end
 end

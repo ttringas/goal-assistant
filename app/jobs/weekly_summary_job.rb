@@ -1,4 +1,6 @@
 class WeeklySummaryJob < ApplicationJob
+  include SummaryHelpers
+  
   queue_as :default
 
   def perform(date = Date.current)
@@ -42,7 +44,7 @@ class WeeklySummaryJob < ApplicationJob
     summary.metadata = {
       entry_count: entries.count,
       days_with_entries: days_with_entries,
-      goals_mentioned: goals_mentioned.map(&:id),
+      goals_mentioned: goals_mentioned,
       generated_at: Time.current
     }
     
@@ -61,8 +63,9 @@ class WeeklySummaryJob < ApplicationJob
       day_entries.map { |e| "  - #{e.content}" }.join("\n")
     end.join("\n\n")
     
-    goals_text = goals.map { |g| "- #{g.title} (#{g.goal_type})" }.join("\n")
-    goals_mentioned_text = goals_mentioned.map(&:title).join(', ')
+    goals_text = format_goals_for_prompt(goals)
+    mentioned_goal_objects = goals.select { |g| goals_mentioned.include?(g.id) }
+    goals_mentioned_text = mentioned_goal_objects.map(&:title).join(', ')
     
     prompt = AiPrompts.render_template(:weekly_summary_generation, {
       week_range: "#{start_date.strftime('%B %d')} - #{end_date.strftime('%B %d, %Y')}",
@@ -72,21 +75,10 @@ class WeeklySummaryJob < ApplicationJob
       goals_mentioned: goals_mentioned_text.presence || 'None specifically mentioned'
     })
     
+    raise "Failed to render prompt template" if prompt.nil?
+    
     system_prompt = AiPrompts.system_prompt_for(:weekly_summary)
     
     ai_service.generate_response(prompt, system_prompt, temperature: 0.7)
-  end
-  
-  def extract_goal_mentions(entries, goals)
-    mentioned_goals = []
-    entries_text = entries.map(&:content).join(' ').downcase
-    
-    goals.each do |goal|
-      if entries_text.include?(goal.title.downcase)
-        mentioned_goals << goal
-      end
-    end
-    
-    mentioned_goals.uniq
   end
 end
