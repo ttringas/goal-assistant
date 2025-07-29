@@ -44,7 +44,7 @@ gem "anthropic"
 gem "ruby-openai"
 
 group :development do
-  gem "foreman", "~> 0.88"
+  gem "foreman", "~> 0.90"
 end
 
 group :development, :test do
